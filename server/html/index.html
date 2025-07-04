@@ -5,11 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple HTTPS Server</title>
     <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
 </head>
 <body>
+    <div class="lang-toggle">
+        <button type="button" id="lang-ja">日本語</button>
+        <button type="button" id="lang-en">English</button>
+    </div>
     <header>
-        <h1>Welcome to the Simple HTTPS Server!</h1>
+        <h1 data-i18n="welcome">Welcome to the Simple HTTPS Server!</h1>
     </header>
+    <p><a href="config.html" data-i18n="editConfig">Edit Configuration</a></p>
     <img src="sample.png" alt="Sample Image">
     <script src="script.js"></script>
 </body>
