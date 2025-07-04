@@ -1,0 +1,6 @@
+host: 0.0.0.0
+port: 8443
+domain: example.com
+certfile: server/cert.pem
+keyfile: server/key.pem
+resource_path: server/html
