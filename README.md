@@ -15,8 +15,11 @@ This repository includes a lightweight RFC 7231 compliant HTTPS web server imple
 
 2. Generate or provide a certificate and key. Update `server/server_config.yaml` with paths to your certificate (`certfile`) and key (`keyfile`).
 
-3. Place HTML or other resources in the directory specified by `resource_path`.
-   Sample HTML5, CSS3 and JavaScript files are provided under `server/html`.
+3. Place folders or zip archives in the directory specified by `resource_path`.
+   Each folder name becomes a context path. If a zip file is found, its filename
+   (without `.zip`) is used as the context path and the contents are served
+directly. Built-in pages live under `server/resources/__system` and a simple
+sample application lives in `server/resources/__sample`.
 
 ### Running
 
@@ -27,10 +30,11 @@ python server/simple_https_server.py -c server/server_config.yaml
 ```
 
 The server will listen on the configured host and port using HTTPS.
+You can also view this README in your browser at `https://<host>:<port>/__system/readme.html`.
 
 ### Editing Configuration via Browser
 
-Navigate to `https://<host>:<port>/config.html` while the server is running. This
+Navigate to `https://<host>:<port>/__system/config.html` while the server is running. This
 page shows the contents of `server_config.yaml` and allows you to update values.
 Changes to `resource_path` are applied immediately. After saving, the server
 gracefully restarts so that all other fields take effect without further
@@ -61,3 +65,5 @@ openssl req -x509 -newkey rsa:4096 -keyout server/key.pem -out server/cert.pem -
 - `certfile`: Path to the TLS certificate.
 - `keyfile`: Path to the private key for the certificate.
 - `resource_path`: Directory containing static resources to serve.
+  Place subfolders or zip files here. Each folder name or zip filename becomes
+  a context path such as `/__sample` or `/app1`.

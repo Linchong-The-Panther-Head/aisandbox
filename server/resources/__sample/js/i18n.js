@@ -1,11 +1,12 @@
 /**
- * Basic i18n helper supporting Japanese and English.
- *
- * Elements that should be translated must have a `data-i18n` attribute
- * whose value corresponds to a key in the `strings` table below.
- * Call `setLang('ja')` or `setLang('en')` to switch languages.
- * The language toggle buttons with IDs `lang-ja` and `lang-en`, if present,
- * automatically call this function on click.
+ * 日本語と英語に対応した簡易 i18n ヘルパー。
+ * 翻訳対象の要素には `data-i18n` 属性を設定し、下の `strings` テーブルから
+ * 対応するキーを取得します。
+ * `setLang('ja')` または `setLang('en')` を呼び出すことで言語を切り替えます。
+ * `lang-ja` と `lang-en` の ID を持つボタンがあれば自動でハンドラーが登録されます。
+ * Basic i18n helper supporting Japanese and English. Elements use the keys from
+ * the `strings` table below. Language toggle buttons with IDs `lang-ja` and
+ * `lang-en` automatically invoke this function.
  *
  * @module i18n
  */
@@ -30,7 +31,7 @@ const strings = {
     domainHelp: '参照用ドメイン名 (例: example.com)',
     certfileHelp: '証明書ファイルへのパス (例: server/cert.pem)',
     keyfileHelp: '鍵ファイルへのパス (例: server/key.pem)',
-    resourcePathHelp: '静的リソースのディレクトリ (例: server/html)'
+    resourcePathHelp: '静的リソースのディレクトリ (例: server/resources)'
   },
   en: {
     welcome: 'Welcome to the Simple HTTPS Server!',
@@ -50,7 +51,7 @@ const strings = {
     domainHelp: 'Domain name for reference (e.g., example.com)',
     certfileHelp: 'Path to TLS certificate (e.g., server/cert.pem)',
     keyfileHelp: 'Path to private key (e.g., server/key.pem)',
-    resourcePathHelp: 'Directory of static files (e.g., server/html)'
+    resourcePathHelp: 'Directory of static files (e.g., server/resources)'
   }
 };
 
@@ -66,6 +67,7 @@ if (urlLang && strings[urlLang]) {
 }
 
 /**
+ * すべての翻訳対象要素を指定した言語に更新します。
  * Update all translatable elements to the specified language.
  * @param {string} lang - 'ja' or 'en'
  */
@@ -91,6 +93,7 @@ function setLang(lang) {
 }
 
 /**
+ * 現在の言語で翻訳された文字列を取得します。
  * Retrieve a translated string for the current language.
  * @param {string} key - translation key
  * @returns {string}
