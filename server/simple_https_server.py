@@ -9,9 +9,11 @@ import os
 import yaml
 
 class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    """HTTP request handler that serves files from a configured directory."""
+    """設定されたディレクトリからファイルを配信するハンドラー。"""
 
     def __init__(self, *args, directory=None, **kwargs):
+        """リソースディレクトリを指定してハンドラーを初期化する。"""
+
         if directory is None:
             directory = os.getcwd()
         self.directory = directory
@@ -19,6 +21,8 @@ class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def run_server(config_path: str):
+    """設定ファイルを読み込みHTTPSサーバーを起動する。"""
+
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
@@ -40,8 +44,10 @@ def run_server(config_path: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Simple HTTPS server")
-    parser.add_argument('-c', '--config', default='server_config.yaml', help='Path to configuration YAML file')
+    """コマンドライン引数を解析してサーバーを起動する。"""
+
+    parser = argparse.ArgumentParser(description="シンプルHTTPSサーバー")
+    parser.add_argument('-c', '--config', default='server_config.yaml', help='設定YAMLファイルへのパス')
     args = parser.parse_args()
     run_server(args.config)
 

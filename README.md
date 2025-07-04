@@ -16,6 +16,7 @@ This repository includes a lightweight RFC 7231 compliant HTTPS web server imple
 2. Generate or provide a certificate and key. Update `server/server_config.yaml` with paths to your certificate (`certfile`) and key (`keyfile`).
 
 3. Place HTML or other resources in the directory specified by `resource_path`.
+   Sample HTML5, CSS3 and JavaScript files are provided under `server/html`.
 
 ### Running
 
