@@ -14,6 +14,7 @@ import threading
 import mimetypes
 import zipfile
 import io
+import socket
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -29,6 +30,39 @@ def load_config(path: str):
 def save_config(path: str, config: dict):
     with open(path, "w") as f:
         yaml.safe_dump(config, f)
+
+
+def check_port_free(host: str, port: int) -> bool:
+    """指定したポートが使用中でないか確認する
+    Check whether the given port is free."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind((host, port))
+        except OSError:
+            return False
+    return True
+
+
+def validate_config(data: dict) -> dict:
+    """設定内容を検証し、エラーを辞書で返す
+    Validate configuration values and return error keys."""
+    errors: dict[str, str] = {}
+    host = data.get("host", CONFIG.get("host", "0.0.0.0"))
+    port = int(data.get("port", CONFIG.get("port", 443)))
+    if (host, port) != (CONFIG.get("host"), int(CONFIG.get("port", 443))):
+        if not check_port_free(host, port):
+            errors["port"] = "portInUse"
+    for key in ("certfile", "keyfile"):
+        if key in data:
+            path = data[key]
+            if path and not os.path.isfile(path):
+                errors[key] = "fileNotFound"
+    if "resource_path" in data:
+        rp = data["resource_path"]
+        if rp and not os.path.isdir(rp):
+            errors["resource_path"] = "dirNotFound"
+    return errors
 
 
 class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -77,6 +111,15 @@ class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if restart:
                 self.server.restart_after_shutdown = True
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
+        elif self.path == "/validate":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length) if length else b"{}"
+            data = json.loads(body.decode("utf-8"))
+            errors = validate_config(data)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"errors": errors}).encode("utf-8"))
         else:
             super().do_POST()
 

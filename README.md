@@ -43,6 +43,8 @@ validated when you leave it and errors are shown in Japanese. The submit button
 remains disabled until all fields are valid. Full-width digits are converted to
 half-width before validation. Hover the **?** icons next to each field to see a
 short description and example value in the current language.
+When saving, the server also checks that the chosen port is free and that file
+paths exist; if any problems are found, it will not restart.
 
 Both the index page and the configuration editor include a language toggle at
 the top-right corner. Click **日本語** or **English** to switch all labels and
