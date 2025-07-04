@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="configTitle">サーバー設定</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body>
+    <div class="lang-toggle">
+        <button type="button" id="lang-ja">日本語</button>
+        <button type="button" id="lang-en">English</button>
+    </div>
+    <header><h1 data-i18n="configTitle">サーバー設定</h1></header>
+    <form id="config-form">
+        <label for="host" data-i18n="host">ホスト</label>:
+        <input id="host" type="text" name="host">
+        <span class="help" data-help-key="hostHelp">?</span>
+        <span class="error" id="error-host"></span><br>
+        <label for="port" data-i18n="port">ポート</label>:
+        <input id="port" type="text" name="port">
+        <span class="help" data-help-key="portHelp">?</span>
+        <span class="error" id="error-port"></span><br>
+        <label for="domain" data-i18n="domain">ドメイン</label>:
+        <input id="domain" type="text" name="domain">
+        <span class="help" data-help-key="domainHelp">?</span>
+        <span class="error" id="error-domain"></span><br>
+        <label for="certfile" data-i18n="certfile">証明書ファイル</label>:
+        <input id="certfile" type="text" name="certfile">
+        <span class="help" data-help-key="certfileHelp">?</span>
+        <span class="error" id="error-certfile"></span><br>
+        <label for="keyfile" data-i18n="keyfile">鍵ファイル</label>:
+        <input id="keyfile" type="text" name="keyfile">
+        <span class="help" data-help-key="keyfileHelp">?</span>
+        <span class="error" id="error-keyfile"></span><br>
+        <label for="resource_path" data-i18n="resourcePath">リソースパス</label>:
+        <input id="resource_path" type="text" name="resource_path">
+        <span class="help" data-help-key="resourcePathHelp">?</span>
+        <span class="error" id="error-resource_path"></span><br>
+        <button type="submit" id="submit-btn" disabled data-i18n="saveRestart">保存して再起動</button>
+    </form>
+    <div id="status"></div>
+    <script src="config.js"></script>
+</body>
+</html>
