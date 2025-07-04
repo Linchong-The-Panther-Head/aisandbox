@@ -1,6 +1,8 @@
 """
 簡単なHTTPSサーバー。ローカルテスト用。
 このサーバーはカレントディレクトリからHTTPSでファイルを配信します。
+Simple HTTPS server for local testing that serves files from the current
+directory.
 """
 import argparse
 import http.server
@@ -9,6 +11,11 @@ import os
 import json
 import yaml
 import threading
+import mimetypes
+import zipfile
+import io
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 CONFIG = {}
 CONFIG_PATH = None
@@ -25,13 +32,16 @@ def save_config(path: str, config: dict):
 
 
 class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    """設定されたディレクトリからファイルを配信し、設定の表示と更新を行うハンドラー。"""
+    """設定されたディレクトリまたはZIPアーカイブからファイルを配信し、設定の表示と更新を行うハンドラー。"""
 
     def __init__(self, *args, directory=None, **kwargs):
         if directory is None:
             directory = CONFIG.get("resource_path", os.getcwd())
-        self.directory = directory
-        super().__init__(*args, directory=directory, **kwargs)
+        self.resource_root = directory
+        super().__init__(*args, directory=os.getcwd(), **kwargs)
+
+    def update_paths(self):
+        self.resource_root = CONFIG.get("resource_path", self.resource_root)
 
     def do_GET(self):
         if self.path == "/config":
@@ -39,8 +49,15 @@ class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps(CONFIG).encode("utf-8"))
-        else:
-            super().do_GET()
+            return
+
+        self._serve(head=False)
+
+    def do_HEAD(self):
+        if self.path == "/config":
+            self.send_error(405, "Method Not Allowed")
+            return
+        self._serve(head=True)
 
     def do_POST(self):
         if self.path == "/config":
@@ -53,7 +70,7 @@ class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 save_config(CONFIG_PATH, CONFIG)
             # 動的に変更可能な設定のみ即時反映
             if "resource_path" in data:
-                self.directory = CONFIG.get("resource_path", self.directory)
+                self.update_paths()
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"OK")
@@ -63,9 +80,70 @@ class ConfigurableHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             super().do_POST()
 
+    def _serve(self, head: bool):
+        path = self.path.split('?')[0]
+        if path in ('/README.md', '/README.ja.md'):
+            file_path = os.path.join(REPO_ROOT, path.lstrip('/'))
+            if os.path.isfile(file_path):
+                with open(file_path, 'rb') as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/markdown')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                if not head:
+                    self.wfile.write(data)
+            else:
+                self.send_error(404, 'File not found')
+            return
+        # コンテキストが指定されていない場合のデフォルト / default context
+        if path == '/' or path == '':
+            context = '__system'
+            inner = 'index.html'
+        else:
+            parts = path.lstrip('/').split('/', 1)
+            context = parts[0]
+            inner = parts[1] if len(parts) > 1 else ''
+            if inner == '' or inner.endswith('/'):
+                inner += 'index.html'
+
+        dir_path = os.path.join(self.resource_root, context)
+        zip_path = os.path.join(self.resource_root, context + '.zip')
+        if os.path.isdir(dir_path):
+            prev_dir = self.directory
+            prev_path = self.path
+            self.directory = dir_path
+            self.path = '/' + inner
+            try:
+                if head:
+                    super().do_HEAD()
+                else:
+                    super().do_GET()
+            finally:
+                self.directory = prev_dir
+                self.path = prev_path
+        elif os.path.isfile(zip_path):
+            try:
+                with zipfile.ZipFile(zip_path) as zf:
+                    data = zf.read(inner)
+            except KeyError:
+                self.send_error(404, "File not found")
+                return
+            ctype = mimetypes.guess_type(inner)[0] or 'application/octet-stream'
+            self.send_response(200)
+            self.send_header("Content-type", ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            if not head:
+                self.wfile.write(data)
+        else:
+            self.send_error(404, "Not Found")
+
 
 def run_server(config_path: str):
-    """設定ファイルを読み込み、更新に応じてサーバーを再起動しながら起動する。"""
+    """設定ファイルを読み込み、更新に応じてサーバーを再起動しながら起動する。
+    Load the configuration file and restart the server when it changes.
+    """
 
     global CONFIG, CONFIG_PATH
     CONFIG_PATH = config_path
@@ -81,7 +159,7 @@ def run_server(config_path: str):
         keyfile = CONFIG.get('keyfile')
 
         handler_class = lambda *args, **kwargs: ConfigurableHTTPRequestHandler(
-            *args, directory=CONFIG.get('resource_path', resource_path), **kwargs)
+            *args, directory=resource_path, **kwargs)
         httpd = http.server.HTTPServer((host, port), handler_class)
         httpd.restart_after_shutdown = False
 
@@ -98,7 +176,9 @@ def run_server(config_path: str):
 
 
 def main():
-    """コマンドライン引数を解析してサーバーを起動する。"""
+    """コマンドライン引数を解析してサーバーを起動する。
+    Parse command line arguments and start the server.
+    """
 
     parser = argparse.ArgumentParser(description="シンプルHTTPSサーバー")
     parser.add_argument('-c', '--config', default='server_config.yaml', help='設定YAMLファイルへのパス')

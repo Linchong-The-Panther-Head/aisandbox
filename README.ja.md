@@ -16,7 +16,11 @@ Codex用のサンドボックスです。
 
 2. 証明書と秘密鍵を生成するか、既存のものを用意してください。`server/server_config.yaml` を編集し、証明書(`certfile`)と秘密鍵(`keyfile`)のパスを設定します。
 
-3. HTML などのリソースを `resource_path` で指定したディレクトリに置きます。`server/html` には HTML5、CSS3、JavaScript のサンプルが含まれています。
+3. `resource_path` で指定したディレクトリに、フォルダまたは zip ファイルを配置します。
+   フォルダ名がそのままコンテキストパスになります。zip ファイルがあれば拡張子を
+   取り除いた名前がコンテキストパスとなり、展開せずにそのまま配信されます。
+   組み込みページは `server/resources/__system` に、サンプルアプリは
+   `server/resources/__sample` として用意しています。
 
 ### 実行
 
@@ -27,10 +31,11 @@ python server/simple_https_server.py -c server/server_config.yaml
 ```
 
 サーバーは、設定されたホストとポートで HTTPS として待ち受けます。
+`https://<ホスト>:<ポート>/__system/readme.html` から本READMEをブラウザで閲覧することもできます。
 
 ### ブラウザからの設定編集
 
-サーバー起動中に `https://<ホスト>:<ポート>/config.html` にアクセスすると、
+サーバー起動中に `https://<ホスト>:<ポート>/__system/config.html` にアクセスすると、
 `server_config.yaml` の内容を閲覧・編集できます。`resource_path` の変更は
 再起動なしで即座に反映されます。保存後はサーバーが自動的に再起動し、
 その他の項目も反映されます。この再起動はこのページからの操作時のみ行われます。
@@ -57,4 +62,5 @@ openssl req -x509 -newkey rsa:4096 -keyout server/key.pem -out server/cert.pem -
 - `domain`: 参照用のドメイン名
 - `certfile`: TLS 証明書のパス
 - `keyfile`: 証明書の秘密鍵のパス
-- `resource_path`: 配信する静的リソースを含むディレクトリ
+- `resource_path`: 配信する静的リソースを含むディレクトリ。
+  ここに配置したサブフォルダや zip ファイルの名前がコンテキストパスになります。
