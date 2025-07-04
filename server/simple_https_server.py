@@ -1,3 +1,7 @@
+"""
+簡単なHTTPSサーバー。ローカルテスト用。
+このサーバーはカレントディレクトリからHTTPSでファイルを配信します。
+"""
 import argparse
 import http.server
 import ssl
