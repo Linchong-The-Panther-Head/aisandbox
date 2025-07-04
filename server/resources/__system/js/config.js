@@ -77,15 +77,36 @@ document.addEventListener('DOMContentLoaded', () => {
     fields.forEach(name => {
       data[name] = form.elements[name].value;
     });
-    data.restart = true;
-    fetch('/config', {
+    fetch('/validate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     })
-      .then(r => r.text())
-      .then(txt => {
-        document.getElementById('status').textContent = txt;
+      .then(r => r.json())
+      .then(res => {
+        let remoteError = false;
+        if (res.errors) {
+          Object.keys(res.errors).forEach(key => {
+            errors[key] = t(res.errors[key]);
+            document.getElementById('error-' + key).textContent = errors[key];
+            if (errors[key]) remoteError = true;
+          });
+        }
+        updateSubmit();
+        if (remoteError) return;
+        data.restart = true;
+        fetch('/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+          .then(r => r.text())
+          .then(txt => {
+            document.getElementById('status').textContent = txt;
+          })
+          .catch(() => {
+            document.getElementById('status').textContent = 'Error';
+          });
       })
       .catch(() => {
         document.getElementById('status').textContent = 'Error';
